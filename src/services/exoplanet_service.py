@@ -1,12 +1,13 @@
 from models.exoplanet import ExoplanetData, Response
+from fastapi import UploadFile
 import logging
 import joblib
 import pandas as pd
+import io
 
 logger = logging.getLogger(__name__)
 model = joblib.load(r"C:\Users\khale\Documents\Tracks\Data Science & AI\NASA\Deploy\ExoHunter\src\utils\xgb_pipeline.pkl")
 encoder = joblib.load(r"C:\Users\khale\Documents\Tracks\Data Science & AI\NASA\Deploy\ExoHunter\src\utils\label_encoder.pkl")
-
 
 class ExoplanetService:
     @staticmethod
@@ -38,10 +39,8 @@ class ExoplanetService:
             predicted_index = probs.argmax()
             predicted_prob = float(probs[predicted_index])  
             
-
             result = {"predicted_class": f'{encoder.inverse_transform([predicted_index])[0]}', "predicted_proba": f'{round(predicted_prob,2)}'}
 
-            
             response = Response(
                 success=True,
                 data=result,
@@ -53,4 +52,33 @@ class ExoplanetService:
             
         except Exception as e:
             logger.error(f"Error processing exoplanet data: {str(e)}")
+            raise
+
+    @staticmethod
+    async def process_exoplanet_file(file: UploadFile) -> Response:
+        try:
+            logger.info(f"Processing uploaded file: {file.filename}")
+            
+            contents = await file.read()
+            
+            if file.filename.endswith('.csv'):
+                df = pd.read_csv(io.BytesIO(contents))
+            else: 
+                df = pd.read_excel(io.BytesIO(contents))
+            
+            if df.empty:
+                raise ValueError("The uploaded file is empty")
+            
+            # Process the first row (or you can modify to process all rows)
+            row = df.iloc[0].to_dict()
+            
+            exoplanet_data = ExoplanetData(**row)
+            
+            response = await ExoplanetService.process_exoplanet_data(exoplanet_data)
+            
+            logger.info("File processed successfully")
+            return response
+            
+        except Exception as e:
+            logger.error(f"Error processing file: {str(e)}")
             raise

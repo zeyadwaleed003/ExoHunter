@@ -1,7 +1,11 @@
 from models.exoplanet import ExoplanetData, Response
 import logging
+import joblib
+import pandas as pd
 
 logger = logging.getLogger(__name__)
+model = joblib.load(r"C:\Users\khale\Documents\Tracks\Data Science & AI\NASA\Deploy\ExoHunter\src\utils\xgb_pipeline.pkl")
+encoder = joblib.load(r"C:\Users\khale\Documents\Tracks\Data Science & AI\NASA\Deploy\ExoHunter\src\utils\label_encoder.pkl")
 
 
 class ExoplanetService:
@@ -27,10 +31,20 @@ class ExoplanetService:
                 "eqt_to_insol": eqt_to_insol,
                 "tran_snr_proxy": tran_snr_proxy
             })
+
+            df = pd.DataFrame(data_dict, index=[0])
+
+            probs = model.predict_proba(df)[0]
+            predicted_index = probs.argmax()
+            predicted_prob = float(probs[predicted_index])  
+            
+
+            result = {"predicted_class": f'{encoder.inverse_transform([predicted_index])[0]}', "predicted_proba": f'{round(predicted_prob,2)}'}
+
             
             response = Response(
                 success=True,
-                data=data_dict,
+                data=result,
                 message="Exoplanet data processed successfully"
             )
             

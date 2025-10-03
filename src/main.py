@@ -7,7 +7,7 @@ setup_logging()
 
 app = FastAPI()
 
-# Include routers
+
 app.include_router(exoplanet_router)
 
 @app.get("/health")

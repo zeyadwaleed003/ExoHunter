@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, status
-from models.exoplanet import ExoplanetData, ExoplanetResponse
+from models.exoplanet import ExoplanetData, Response
 from services.exoplanet_service import ExoplanetService
 import logging
 
@@ -11,7 +11,7 @@ exoplanet_service = ExoplanetService()
 
 @router.post(
     "/",
-    response_model=ExoplanetResponse,
+    response_model=Response,
     status_code=status.HTTP_200_OK,
 )
 async def process_exoplanet_data(data: ExoplanetData):

@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field, field_validator, ConfigDict
-from typing import Optional
+from typing import Any, Optional
+
 
 class ExoplanetData(BaseModel):
     pl_eqt: Optional[float] = None
@@ -39,4 +40,4 @@ class Response(BaseModel):
     message: Optional[str] = None
     prediction: Optional[str] = None
     confidence: Optional[float] = None
-    data: Optional[dict] = None
+    data: Optional[Any] = None
